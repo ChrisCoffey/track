@@ -2,8 +2,7 @@ module Core (
     Category(..),
     LogEntry(..),
     Database(..),
-    Context(..),
-    initializeContext
+    TTError(..)
 )
 where
 
@@ -30,7 +29,8 @@ data LogEntry =
 data Database =
     Database {
         categories :: [Category],
-        logs :: Seq LogEntry
+        logs :: Seq LogEntry,
+        currentActivity :: Maybe LogEntry
         }
     deriving (Eq, Ord, Show, Serialize, Generic)
 
@@ -39,20 +39,5 @@ data TTError
     | UserError T.ByteString
     deriving (Show)
 
-data Context =
-    Ctx {
-       currentLogEntry :: MVar LogEntry,
-       state :: Database
-    }
 
-initializeContext :: MonadIO m =>
-    Database
-    -> m Context
-initializeContext db = do
-    cell <- liftIO newEmptyMVar
-    pure Ctx {
-        state = db,
-        currentLogEntry = cell
-        }
-
-type TTM = ReaderT Context (ExceptT TTError IO)
+type TTM = ReaderT Database (ExceptT TTError IO)
