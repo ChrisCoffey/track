@@ -1,7 +1,8 @@
 module Storage (
     defaultDbFile,
     loadDb,
-    saveDb
+    saveDb,
+    initializeDb
 ) where
 
 import Core
@@ -9,11 +10,20 @@ import Core
 import Control.Monad.Trans (MonadIO, liftIO)
 import Control.Monad.Except (MonadError, throwError)
 import Data.Serialize (encode,decode)
-import Data.ByteString as BS
+import qualified Data.ByteString as BS
 import Data.Either (either)
+import Data.Sequence (empty)
 
 defaultDbFile :: FilePath
-defaultDbFile = "~/.timeDb"
+defaultDbFile = "/Users/ccoffey/.timeDb"
+
+initializeDb ::
+    FilePath
+    -> IO ()
+initializeDb dbPath = do
+    let db = Database {categories = [], logs = empty, currentActivity = Nothing }
+    print (encode db)
+    liftIO . BS.writeFile dbPath $ encode db
 
 loadDb :: (MonadIO m, MonadError TTError m) =>
     FilePath

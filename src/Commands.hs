@@ -2,6 +2,7 @@ module Commands where
 
 import Core
 
+import Options.Applicative
 import GHC.Generics (Generic)
 
 data InputCommands
@@ -13,3 +14,6 @@ data InputCommands
     | ChangeCategoryName Category Category
     deriving (Eq, Show, Generic)
 
+
+commandParser :: Parser InputCommands
+commandParser = undefined

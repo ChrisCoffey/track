@@ -29,7 +29,6 @@ library
       Storage
     , Tracking
     , Commands
-    , Parser
     , Reports
     , Core
   hs-source-dirs:
