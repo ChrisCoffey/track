@@ -47,7 +47,7 @@ library
   default-extensions: OverloadedStrings DeriveAnyClass NamedFieldPuns GADTs DeriveGeneric
                       DefaultSignatures FlexibleContexts FlexibleInstances UndecidableInstances
 
-executable timetracker-exe
+executable track
   main-is: Main.hs
   other-modules:
       Paths_timetracker
