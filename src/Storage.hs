@@ -1,8 +1,10 @@
 module Storage (
-    defaultDbFile,
     loadDb,
     saveDb,
-    initializeDb
+    initializeDb,
+
+    -- | Debugging function
+    peekDb
 ) where
 
 import Core
@@ -14,9 +16,6 @@ import qualified Data.ByteString as BS
 import Data.Either (either)
 import Data.Sequence (empty)
 
-defaultDbFile :: FilePath
-defaultDbFile = "/Users/ccoffey/.timeDb"
-
 initializeDb ::
     FilePath
     -> IO ()
@@ -25,12 +24,17 @@ initializeDb dbPath = do
     print (encode db)
     liftIO . BS.writeFile dbPath $ encode db
 
+peekDb ::
+    FilePath
+    -> IO (Either String Database)
+peekDb dbPath =
+    decode <$> BS.readFile dbPath
+
 loadDb :: (MonadIO m, MonadError TTError m) =>
     FilePath
     -> m Database
 loadDb dbPath = do
-    rawBytes <- liftIO $ BS.readFile dbPath
-    let mDatabase = decode rawBytes
+    mDatabase <- liftIO $ peekDb dbPath
     either (const . throwError $ SystemError "Could not decode database file") pure mDatabase
 
 saveDb :: (MonadIO m, MonadError TTError m) =>

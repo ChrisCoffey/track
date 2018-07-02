@@ -1,7 +1,7 @@
 module Tracking where
 
 import Core
-import Storage (defaultDbFile, saveDb)
+import Storage (saveDb)
 
 import Control.Monad (when)
 import Control.Monad.Trans (MonadIO, liftIO)
@@ -17,18 +17,23 @@ import Data.Sequence ((|>))
 
 class Monad m => MonadTracking m where
     -- | Begin tracking a category
-    startTracking :: Category -> Maybe BS.ByteString -> m ()
-    changeDetails :: BS.ByteString -> m ()
-    stopTracking :: m LogEntry
+    startTracking :: Category -> Maybe BS.ByteString -> m Database
+    changeDetails :: BS.ByteString -> m Database
+    stopTracking :: m Database
 
+class MonadTime m where
+    nowSeconds :: m Integer
 
-instance (Monad m, MonadReader Database m, MonadIO m, MonadError TTError m) =>
+instance (Monad m, MonadIO m) => MonadTime m where
+    nowSeconds =(fromIntegral . floor) <$> liftIO getPOSIXTime
+
+instance (Monad m, MonadReader Database m, MonadIO m, MonadError TTError m, MonadTime m) =>
     MonadTracking m where
     startTracking cat perhapsDescription = do
         db <- ask
         when (isJust $ currentActivity db) . throwError $ UserError "There is an activity in progress already. You can't do two things at once."
         now <- nowSeconds
-        let db' = db {currentActivity = Just LogEntry
+        pure $ db {currentActivity = Just LogEntry
                 {
                     cat,
                     start = now,
@@ -36,13 +41,11 @@ instance (Monad m, MonadReader Database m, MonadIO m, MonadError TTError m) =>
                     durationSecs = Nothing
                 }
             }
-        saveDb defaultDbFile db'
 
     changeDetails newDetails = do
         db <- ask
         ca <- maybe (throwError $ UserError "No active activity to update. Start tracking something first.") pure $ currentActivity db
-        let db' = db {currentActivity = Just $ ca {details = newDetails}}
-        saveDb defaultDbFile db'
+        pure $ db {currentActivity = Just $ ca {details = newDetails}}
 
     stopTracking = do
         db <- ask
@@ -56,8 +59,4 @@ instance (Monad m, MonadReader Database m, MonadIO m, MonadError TTError m) =>
                 logs = lgs |> ca',
                 currentActivity = Nothing
                 }
-        saveDb defaultDbFile db'
-        pure ca'
-
-nowSeconds :: MonadIO m => m Integer
-nowSeconds = (fromIntegral . floor) <$> liftIO getPOSIXTime
+        pure db'

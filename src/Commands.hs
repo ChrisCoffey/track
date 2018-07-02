@@ -1,4 +1,6 @@
-module Commands where
+module Commands (
+    defaultParser
+) where
 
 import Core
 
@@ -9,27 +11,16 @@ import qualified Data.ByteString as BS
 import GHC.Generics (Generic)
 import Options.Applicative
 
-defaultMain :: IO ()
-defaultMain = do
-    execParser $ info (commandParser <**> helper) fullDesc
-    print "Not Implemented"
+defaultParser :: IO Options
+defaultParser =
+    execParser $ info (optionsParser <**> helper) fullDesc
 
-data Options =
-    Opts {
-        cmd :: InputCommand,
-        silent :: Bool,
-        dbFile :: FilePath
-    } deriving (Show)
-
-data InputCommand
-    = StartTracking Category (Maybe BS.ByteString)
-    | StopTracking
-    | SwitchTask Category
-    | DefineCategory Category
-    | ListCategories
-    | ChangeCategoryName Category Category
-    deriving (Eq, Show, Generic)
-
+optionsParser :: Parser Options
+optionsParser =
+    Opts
+    <$> commandParser
+    <*> flag False False (long "quiet" <> short 'q' <> help "Silence program output")
+    <*> strOption (long "dbPath" <> short 'd' <> metavar "DATABASE FILE" <> value defaultDbFile)
 
 commandParser :: Parser InputCommand
 commandParser = hsubparser $
@@ -37,23 +28,19 @@ commandParser = hsubparser $
     <>
     command "stop" (info stopCommand $ progDesc "Stop tracking time. Generally useful at the end of the day")
     <>
-    command "switch" (info stopCommand $ progDesc "Switch between two tasks. This stops the current task and starts a new task")
+    command "switch" (info switchCommand $ progDesc "Switch between two tasks. This stops the current task and starts a new task")
     <>
     command "category" (info categoryCmd $ progDesc "Manage the configured categories")
     where
-    categoryCmd = newCategoryCommand <|> listCatsCommand <|> modifyCategoryCmd
+    categoryCmd = newCategoryCommand <|> listCatsCommand <|> renameCategoryCmd
 
 
 startCommand :: Parser InputCommand
 startCommand =
-    StartTracking <$> (
-    Category
-    <$> strOption
-        (long "category" <>
-        short 'c' <>
-        metavar "CATEGORY" <>
-        help "The Category to track against"
-        )
+    StartTracking <$>
+    (
+    Category <$> argument str (metavar "Category" <>
+                               help "The Category to track against")
     )
     <*>
     ( emptyStringToNothing
@@ -66,23 +53,58 @@ startCommand =
     )
     )
 
+
+stopCommand :: Parser InputCommand
+stopCommand = pure StopTracking
+
+switchCommand :: Parser InputCommand
+switchCommand =
+    SwitchTask <$>
+    (
+    Category <$> argument str (metavar "Category" <>
+                               help "The Category to track against")
+    )
+    <*>
+    ( emptyStringToNothing
+    <$> strOption
+        (long "desc" <>
+        short 'd' <>
+        metavar "DESCIRPTION" <>
+        help "An optional description for the task" <>
+        value ""
+        )
+    )
+
+newCategoryCommand :: Parser InputCommand
+newCategoryCommand =
+    subparser $ command "new" (info parseDefCat $ progDesc "Define a new category")
+    where
+    parseDefCat =
+        DefineCategory
+        <$> (Category <$> argument str (metavar "Category" <>
+                                        help "The name of the new category you'd like to create")
+            )
+
+listCatsCommand :: Parser InputCommand
+listCatsCommand =
+    subparser $ command "list" (info (pure ListCategories) $ progDesc "List the currently configured categories")
+
+renameCategoryCmd :: Parser InputCommand
+renameCategoryCmd =
+    subparser $ command "rename" (info parseDefCat $ progDesc "Rename a new category")
+    where
+    parseDefCat =
+        ChangeCategoryName
+        <$> (Category <$> argument str (metavar "Category" <>
+                                        help "The name of the new category you'd like to rename")
+            )
+        <*>
+            (Category <$> argument str (metavar "Category" <>
+                                        help "The new category name")
+            )
+
 emptyStringToNothing :: (Eq s, IsString s) =>
     s
     -> Maybe s
 emptyStringToNothing "" = Nothing
 emptyStringToNothing s = Just s
-
-stopCommand :: Parser InputCommand
-stopCommand = undefined
-
-switchCommand :: Parser InputCommand
-switchCommand = undefined
-
-newCategoryCommand :: Parser InputCommand
-newCategoryCommand = undefined
-
-listCatsCommand :: Parser InputCommand
-listCatsCommand = undefined
-
-modifyCategoryCmd :: Parser InputCommand
-modifyCategoryCmd = undefined
