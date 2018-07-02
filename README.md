@@ -10,14 +10,19 @@ Getting started:
 OS X
 ```
 > brew install track
-> track category add Meeting
-> track category add Coding
+> track category new Meeting
+> track category new Coding
 > track start
 Choose the activity category:
 1) Meeting
 2) Coding
 1
-> track start -c Coding
+> track start Coding
 > track stop
 > track analyze -f myTime.log
 ```
+
+The core idea of `track` is that you can only do one thing at a time, so there will only ever be a single activity in progress. You can start a new activity, stop performing any activity, or swith between activities. For the full list of commands, you can run `track --help`.
+
+#### Analyzing your time
+Tracking time is all well and good, but the whole point is to see where its going, right? `track` generates either a JSON dump of your activity by category, time of day. You can then import this file into actual visualization tools like D3 or gnuplot if you want.

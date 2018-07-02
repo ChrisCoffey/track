@@ -39,6 +39,10 @@ evaluate :: (EvalM m, MonadWriter [String] m, TR.MonadTracking m, MonadInput m )
     -> m Database
 evaluate o@(Opts {cmd, silent}) =
     case cmd of
+        StartTracking (Category "") mDesc -> do
+            cats <- categories <$> ask
+            cat <- chooseOne cats
+            evaluate (o {cmd=StartTracking cat mDesc} )
         StartTracking cat mDesc -> TR.startTracking cat mDesc
         StopTracking -> TR.stopTracking
         SwitchTask cat mDesc -> do

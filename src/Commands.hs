@@ -40,7 +40,8 @@ startCommand =
     StartTracking <$>
     (
     Category <$> argument str (metavar "Category" <>
-                               help "The Category to track against")
+                               help "The Category to track against" <>
+                               value "")
     )
     <*>
     ( emptyStringToNothing

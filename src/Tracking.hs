@@ -31,7 +31,10 @@ instance (Monad m, MonadReader Database m, MonadIO m, MonadError TTError m, Mona
     MonadTracking m where
     startTracking cat perhapsDescription = do
         db <- ask
-        when (isJust $ currentActivity db) . throwError $ UserError "There is an activity in progress already. You can't do two things at once."
+        when (isJust $ currentActivity db) . throwError $
+            UserError "There is an activity in progress already. You can't do two things at once."
+        when (cat `notElem` categories db) . throwError $
+            UserError "Unknown category. Add to your list before tracking."
         now <- nowSeconds
         pure $ db {currentActivity = Just LogEntry
                 {

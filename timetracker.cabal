@@ -44,6 +44,7 @@ library
     , time
     , containers
     , optparse-applicative
+    , aeson
   default-language: Haskell2010
   default-extensions: OverloadedStrings DeriveAnyClass NamedFieldPuns GADTs DeriveGeneric
                       DefaultSignatures FlexibleContexts FlexibleInstances UndecidableInstances
