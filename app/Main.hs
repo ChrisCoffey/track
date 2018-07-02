@@ -1,5 +1,6 @@
 module Main where
 
+import Commands
 
 main :: IO ()
-main = print "not implemented"
+main = defaultMain

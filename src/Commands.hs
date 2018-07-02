@@ -9,6 +9,18 @@ import qualified Data.ByteString as BS
 import GHC.Generics (Generic)
 import Options.Applicative
 
+defaultMain :: IO ()
+defaultMain = do
+    execParser $ info (commandParser <**> helper) fullDesc
+    print "Not Implemented"
+
+data Options =
+    Opts {
+        cmd :: InputCommand,
+        silent :: Bool,
+        dbFile :: FilePath
+    } deriving (Show)
+
 data InputCommand
     = StartTracking Category (Maybe BS.ByteString)
     | StopTracking
@@ -20,9 +32,17 @@ data InputCommand
 
 
 commandParser :: Parser InputCommand
-commandParser =
-    startCommand <|> stopCommand <|> switchCommand <|>
-    newCategoryCommand <|> listCatsCommand <|> modifyCategoryCmd
+commandParser = hsubparser $
+    command "start" (info startCommand $ progDesc "Start tracking time against a particular category of work")
+    <>
+    command "stop" (info stopCommand $ progDesc "Stop tracking time. Generally useful at the end of the day")
+    <>
+    command "switch" (info stopCommand $ progDesc "Switch between two tasks. This stops the current task and starts a new task")
+    <>
+    command "category" (info categoryCmd $ progDesc "Manage the configured categories")
+    where
+    categoryCmd = newCategoryCommand <|> listCatsCommand <|> modifyCategoryCmd
+
 
 startCommand :: Parser InputCommand
 startCommand =
