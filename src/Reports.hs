@@ -76,9 +76,9 @@ computeTimeOfDay ::
 computeTimeOfDay tz ts
     | (hour > 0 && hour < 7) || hour >= 22 = LateNight
     | hour >= 7 && hour < 11 = Morning
-    | hour >= 11 && hour < 2 = MidDay
-    | hour >= 2 && hour < 6 = Afternoon
-    | hour >= 6 && hour < 22 = Evening
+    | hour >= 11 && hour < 14 = MidDay
+    | hour >= 14 && hour < 18 = Afternoon
+    | hour >= 18 && hour < 22 = Evening
     | otherwise = error "impossible hour"
     where
     hour = todHour $ localTimeOfDay lts
