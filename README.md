@@ -19,7 +19,8 @@ Choose the activity category:
 1
 > track start Coding
 > track stop
-> track analyze -f myTime.log
+> track logs analyze --start "2018-01-15 14:30" --end "2018-06-01 15:45" -f myTime.log
+> track logs delete
 ```
 
 The core idea of `track` is that you can only do one thing at a time, so there will only ever be a single activity in progress. You can start a new activity, stop performing any activity, or swith between activities. For the full list of commands, you can run `track --help`.

@@ -27,7 +27,7 @@ allReports start end tz = do
         datum = logs db
         categoryReport = runCategoryReport start end datum
         timeOfDayReport = runTimeOfDayReport start end tz datum
-        categorySizeReport = runSizeReport start end datum
+        categorySizeReport = M.empty -- runSizeReport start end datum
     pure Report {
         startTime = start,
         endTime = end,
@@ -45,7 +45,7 @@ runCategoryReport sts end =
     foldr addRecord M.empty
     where
         addRecord (LogEntry {cat, start, durationSecs}) acc
-            | (fromInteger start) > sts && (fromInteger start) <= end = M.insertWith (+) cat (fromMaybe 0 durationSecs) acc
+            | (fromInteger start) > sts && (fromInteger start) <= end = M.insertWith (+) cat (fromIntegral $ fromMaybe 0 durationSecs) acc
             | otherwise = acc
 
 runTimeOfDayReport ::
@@ -58,7 +58,8 @@ runTimeOfDayReport sts end tz =
     foldr addRecord M.empty
     where
         addRecord (LogEntry {start, durationSecs}) acc
-            | (fromInteger start) > sts && (fromInteger start) <= end = M.insertWith (+) (computeTimeOfDay tz start) (fromMaybe 0 durationSecs) acc
+            | (fromInteger start) > sts && (fromInteger start) <= end =
+                M.insertWith (+) (computeTimeOfDay tz (fromInteger start)) (fromIntegral $ fromMaybe 0 durationSecs) acc
             | otherwise = acc
 
 runSizeReport ::

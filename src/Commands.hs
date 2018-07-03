@@ -8,6 +8,9 @@ import Control.Applicative ((<|>))
 import Data.Semigroup ((<>))
 import Data.String (IsString)
 import qualified Data.ByteString as BS
+import Data.Time.LocalTime ( localTimeToUTC)
+import Data.Time.Format (defaultTimeLocale, parseTimeM, iso8601DateFormat)
+import Data.Time.Clock.POSIX (POSIXTime, utcTimeToPOSIXSeconds)
 import GHC.Generics (Generic)
 import Options.Applicative
 
@@ -31,8 +34,11 @@ commandParser = hsubparser $
     command "switch" (info switchCommand $ progDesc "Switch between two tasks. This stops the current task and starts a new task")
     <>
     command "category" (info categoryCmd $ progDesc "Manage the configured categories")
+    <>
+    command "logs" (info logsCmd $ progDesc "Manage your time logs")
     where
     categoryCmd = newCategoryCommand <|> listCatsCommand <|> renameCategoryCmd
+    logsCmd = analyzeLogsCommand <|> deleteLogsCommand <|> previewLogsCommand
 
 
 startCommand :: Parser InputCommand
@@ -63,7 +69,8 @@ switchCommand =
     SwitchTask <$>
     (
     Category <$> argument str (metavar "Category" <>
-                               help "The Category to track against")
+                               help "The Category to track against" <>
+                               value "")
     )
     <*>
     ( emptyStringToNothing
@@ -75,6 +82,10 @@ switchCommand =
         value ""
         )
     )
+
+--
+-- Category commands
+--
 
 newCategoryCommand :: Parser InputCommand
 newCategoryCommand =
@@ -104,8 +115,54 @@ renameCategoryCmd =
                                         help "The new category name")
             )
 
+--
+-- Logs
+--
+
+analyzeLogsCommand ::
+    Parser InputCommand
+analyzeLogsCommand =
+    subparser $ command "analyze" (info parseAnalyze $ progDesc "Analyze your log activity. Prints the results to a file.")
+    where
+    parseAnalyze =
+        Analyze
+        <$> option (Just <$> maybeReader parseTS)( long "start" <>
+                                          short 's' <>
+                                          metavar "START TIME" <>
+                                          help "The time to begin analyzing logs from" <>
+                                          value (Nothing :: Maybe POSIXTime)
+                                        )
+        <*> option (Just <$> maybeReader parseTS)( long "end" <>
+                                          short 'e' <>
+                                          metavar "END TIME" <>
+                                          help "Ignore logs after this time" <>
+                                          value (Nothing :: Maybe POSIXTime)
+                                        )
+        <*> strOption (long "filePath" <>
+                       short 'f' <>
+                       metavar "OUTPUT FILE" <>
+                       help "Where to write the results of your time log analysis"
+                       )
+
+
+deleteLogsCommand :: Parser InputCommand
+deleteLogsCommand = undefined
+
+previewLogsCommand :: Parser InputCommand
+previewLogsCommand = undefined
+
+--
+-- Utility functions
+--
+
 emptyStringToNothing :: (Eq s, IsString s) =>
     s
     -> Maybe s
 emptyStringToNothing "" = Nothing
 emptyStringToNothing s = Just s
+
+parseTS :: String -> Maybe POSIXTime
+parseTS s = let
+    withTime = parseTimeM True defaultTimeLocale (iso8601DateFormat $ Just "%H:%M:%S") s
+    noTime = parseTimeM True defaultTimeLocale (iso8601DateFormat Nothing) s
+    in utcTimeToPOSIXSeconds <$> (withTime <|> noTime)

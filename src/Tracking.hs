@@ -10,6 +10,7 @@ import Control.Monad.Reader (MonadReader, ask)
 import qualified Data.ByteString as BS
 import Data.Maybe (isJust, fromMaybe, maybe)
 import Data.Time.Clock.POSIX (getPOSIXTime)
+import Data.Time.LocalTime (TimeZone, getCurrentTimeZone)
 import Data.Sequence ((|>))
 
 -- Tracking requires the app to be running. There may only be a single active tracking
@@ -23,9 +24,11 @@ class Monad m => MonadTracking m where
 
 class MonadTime m where
     nowSeconds :: m Integer
+    getTimeZone :: m TimeZone
 
 instance (Monad m, MonadIO m) => MonadTime m where
     nowSeconds =(fromIntegral . floor) <$> liftIO getPOSIXTime
+    getTimeZone = liftIO getCurrentTimeZone
 
 instance (Monad m, MonadReader Database m, MonadIO m, MonadError TTError m, MonadTime m) =>
     MonadTracking m where

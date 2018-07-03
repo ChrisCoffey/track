@@ -45,6 +45,7 @@ library
     , containers
     , optparse-applicative
     , aeson
+    , aeson-pretty
   default-language: Haskell2010
   default-extensions: OverloadedStrings DeriveAnyClass NamedFieldPuns GADTs DeriveGeneric
                       DefaultSignatures FlexibleContexts FlexibleInstances UndecidableInstances

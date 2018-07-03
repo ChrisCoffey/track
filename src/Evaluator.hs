@@ -5,15 +5,19 @@ module Evaluator (
 
 import Core
 import qualified Tracking as TR
+import qualified Reports as R
 
 import Control.Monad (when)
 import Control.Monad.Reader (MonadReader, ask, local)
 import Control.Monad.Except (MonadError, throwError)
 import Control.Monad.Writer (MonadWriter, tell)
 import Control.Monad.Trans (MonadIO, liftIO)
+import Data.Aeson.Encode.Pretty (encodePretty)
+import Data.Maybe (fromMaybe)
 import Data.Semigroup ((<>))
 import qualified Data.ByteString as BS
-import qualified Data.ByteString.Char8 as BSC
+import qualified Data.ByteString.Lazy.Char8 as BSC
+import qualified Data.ByteString.Char8 as BSSC
 import Data.Foldable (traverse_)
 import System.IO (putStrLn, getLine)
 
@@ -32,9 +36,16 @@ instance (Monad m, MonadIO m ) => MonadInput m where
         asDisplayChoice (i,v) =
             show i <> " ) "<> show v
 
+class Monad m => MonadOutput m where
+    writeBSCToFile :: FilePath -> BSC.ByteString -> m ()
+
+instance (Monad m, MonadIO m) => MonadOutput m where
+    writeBSCToFile fp bytes = liftIO $ BSC.writeFile fp bytes
+
 type EvalM m = (Monad m, MonadReader Database m, MonadError TTError m)
 
-evaluate :: (EvalM m, MonadWriter [String] m, TR.MonadTracking m, MonadInput m )=>
+evaluate :: (EvalM m, MonadWriter [String] m, MonadOutput m,
+            TR.MonadTracking m, MonadInput m, TR.MonadTime m)=>
     Options
     -> m Database
 evaluate o@(Opts {cmd, silent}) =
@@ -51,6 +62,13 @@ evaluate o@(Opts {cmd, silent}) =
         DefineCategory cat -> defineCategory cat
         ListCategories -> listCategories
         ChangeCategoryName oldCat newCat -> changeCategoryName oldCat newCat
+        Analyze {aStart, aEnd, aPath} -> do
+            now <- fromInteger <$> TR.nowSeconds
+            tz <- TR.getTimeZone
+            reps <- R.allReports (fromMaybe 0 aStart) (fromMaybe now aEnd) tz
+            writeBSCToFile aPath $ encodePretty reps
+            ask
+        _ -> ask
 
 defineCategory :: (EvalM m) =>
     Category
@@ -66,7 +84,7 @@ listCategories :: (EvalM m, MonadWriter [String] m) =>
     m Database
 listCategories = do
     db <- ask
-    traverse_ tell $ (singleton . BSC.unpack . catName) <$> categories db
+    traverse_ tell $ (singleton . BSSC.unpack . catName) <$> categories db
     pure db
     where
     singleton x = [x]

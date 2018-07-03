@@ -59,7 +59,17 @@ data InputCommand
     | DefineCategory Category
     | ListCategories
     | ChangeCategoryName Category Category
-    | Analyze FilePath
+    | Analyze {
+        aStart :: Maybe POSIXTime,
+        aEnd :: Maybe POSIXTime,
+        aPath :: FilePath
+        }
+    | DeleteByTime {
+        dStart :: Maybe POSIXTime,
+        dEnd :: Maybe POSIXTime
+        }
+    | DeleteByCategory Category
+    | PreviewLogs (Maybe Category)
     deriving (Eq, Show, Generic)
 
 -- Represents the
