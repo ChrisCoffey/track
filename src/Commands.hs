@@ -38,7 +38,7 @@ commandParser = hsubparser $
     command "logs" (info logsCmd $ progDesc "Manage your time logs")
     where
     categoryCmd = newCategoryCommand <|> listCatsCommand <|> renameCategoryCmd
-    logsCmd = analyzeLogsCommand <|> deleteLogsCommand <|> previewLogsCommand
+    logsCmd = analyzeLogsCommand <|> deleteLogsCommand
 
 
 startCommand :: Parser InputCommand
@@ -146,7 +146,29 @@ analyzeLogsCommand =
 
 
 deleteLogsCommand :: Parser InputCommand
-deleteLogsCommand = undefined
+deleteLogsCommand =
+    subparser . command "delete" $ info ((DeleteByCategory <$> byCategory) <|> byTime) $
+        progDesc "Delete log files based on time or Category"
+    where
+        byTime =
+            DeleteByTime
+            <$> option (Just <$> maybeReader parseTS)( long "start" <>
+                                            short 's' <>
+                                            metavar "START TIME" <>
+                                            help "Delete logs that start after this time" <>
+                                            value (Nothing :: Maybe POSIXTime)
+                                            )
+            <*> option (Just <$> maybeReader parseTS)( long "end" <>
+                                            short 'e' <>
+                                            metavar "END TIME" <>
+                                            help "Delete logs starting beore this time" <>
+                                            value (Nothing :: Maybe POSIXTime)
+                                            )
+
+        byCategory = Category <$> strOption (long "cat" <>
+                                short 'c' <>
+                                metavar "CATEGORY" <>
+                                help "The category of data to delete")
 
 previewLogsCommand :: Parser InputCommand
 previewLogsCommand = undefined

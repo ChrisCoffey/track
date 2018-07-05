@@ -26,12 +26,13 @@ source-repository head
 
 library
   exposed-modules:
-      Storage
-    , Tracking
-    , Commands
-    , Evaluator
-    , Reports
+      Commands
     , Core
+    , Evaluator
+    , Management
+    , Reports
+    , Storage
+    , Tracking
   hs-source-dirs:
       src
   build-depends:

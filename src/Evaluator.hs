@@ -6,6 +6,7 @@ module Evaluator (
 import Core
 import qualified Tracking as TR
 import qualified Reports as R
+import qualified Management as Mgmt
 
 import Control.Monad (when)
 import Control.Monad.Reader (MonadReader, ask, local)
@@ -68,6 +69,14 @@ evaluate o@(Opts {cmd, silent}) =
             reps <- R.allReports (fromMaybe 0 aStart) (fromMaybe now aEnd) tz
             writeBSCToFile aPath $ encodePretty reps
             ask
+        DeleteByTime mStartTs mEndTs -> do
+            now <- fromInteger <$> TR.nowSeconds
+            let st = (fromMaybe 0 mStartTs)
+                end = (fromMaybe now mEndTs)
+                pred le = (fromInteger $ start le) >= st && (fromInteger $ start le) <= end
+            Mgmt.deleteLogs pred
+        DeleteByCategory dCat ->
+            Mgmt.deleteLogs ((==) dCat . cat)
         _ -> ask
 
 defineCategory :: (EvalM m) =>
