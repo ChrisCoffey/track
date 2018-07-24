@@ -8,9 +8,12 @@ import Control.Applicative ((<|>))
 import Data.Semigroup ((<>))
 import Data.String (IsString)
 import qualified Data.ByteString as BS
+import qualified Data.ByteString.Char8 as BSC
 import Data.Time.LocalTime ( localTimeToUTC)
 import Data.Time.Format (defaultTimeLocale, parseTimeM, iso8601DateFormat)
 import Data.Time.Clock.POSIX (POSIXTime, utcTimeToPOSIXSeconds)
+import Text.Parsec (parse, sepBy, many1)
+import Text.Parsec.Char (digit, char, letter, space)
 import GHC.Generics (Generic)
 import Options.Applicative
 
@@ -169,6 +172,49 @@ deleteLogsCommand =
                                 short 'c' <>
                                 metavar "CATEGORY" <>
                                 help "The category of data to delete")
+
+editLogCommand :: Parser InputCommand
+editLogCommand =
+    subparser $ command "edit" (info (editDetails <|> editSplit) $ progDesc "Edit the most recent log entry in case you made a mistake.")
+    where
+        editSplit =
+            EditSplit
+            <$> option readSplitPair (
+                long "splits" <>
+                short 's' <>
+                help "A list of Category,Duration pairs to split the log entry into. Once the total duration has been consumed any following pairs will be dropped"
+                )
+
+        readSplitPair :: ReadM [(Category,Int)]
+        readSplitPair = eitherReader $ \str ->
+            case parse splitPairP "" str of
+               Left err -> Left $ show err
+               Right res -> Right res
+
+        splitPairP = flip sepBy space $ do
+            lbl <- many1 letter
+            _   <- char ','
+            dur <- read <$> many1 digit
+            let cat = BSC.pack lbl
+            pure (Category cat, dur)
+
+        editDetails =
+            EditDetails
+            <$> option auto (
+                long "duration" <>
+                short 'd' <>
+                help "The new duration for the log entry." <>
+                value (Nothing :: Maybe Int)
+                )
+            <*>
+                fmap (fmap Category) (
+                    option auto (
+                        long "category" <>
+                        short 'c' <>
+                        help "The new category for the log entry" <>
+                        value (Nothing :: Maybe BS.ByteString)
+                ))
+
 
 previewLogsCommand :: Parser InputCommand
 previewLogsCommand = undefined

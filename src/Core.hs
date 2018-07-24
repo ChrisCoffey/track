@@ -70,6 +70,8 @@ data InputCommand
         }
     | DeleteByCategory Category
     | PreviewLogs (Maybe Category)
+    | EditDetails (Maybe Int) (Maybe Category)
+    | EditSplit [(Category, Int)]
     deriving (Eq, Show, Generic)
 
 -- Represents the

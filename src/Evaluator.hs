@@ -77,6 +77,8 @@ evaluate o@(Opts {cmd, silent}) =
             Mgmt.deleteLogs pred
         DeleteByCategory dCat ->
             Mgmt.deleteLogs ((==) dCat . cat)
+        EditDetails mDur mCat ->
+            TR.modifyLogHead mDur mCat
         _ -> ask
 
 defineCategory :: (EvalM m) =>

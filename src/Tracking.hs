@@ -11,7 +11,7 @@ import qualified Data.ByteString as BS
 import Data.Maybe (isJust, fromMaybe, maybe)
 import Data.Time.Clock.POSIX (getPOSIXTime)
 import Data.Time.LocalTime (TimeZone, getCurrentTimeZone)
-import Data.Sequence ((|>))
+import Data.Sequence ((|>), ViewR(..), viewr)
 
 -- Tracking requires the app to be running. There may only be a single active tracking
 -- event at a time
@@ -21,6 +21,7 @@ class Monad m => MonadTracking m where
     startTracking :: Category -> Maybe BS.ByteString -> m Database
     changeDetails :: BS.ByteString -> m Database
     stopTracking :: m Database
+    modifyLogHead :: Maybe Int -> Maybe Category -> m Database
 
 class MonadTime m where
     nowSeconds :: m Integer
@@ -66,3 +67,14 @@ instance (Monad m, MonadReader Database m, MonadIO m, MonadError TTError m, Mona
                 currentActivity = Nothing
                 }
         pure db'
+
+    modifyLogHead mDur mCat = do
+        db <- ask
+        let changeDuration d le = le {durationSecs = Just d}
+            changeCategory c le = le {cat = c}
+            (rest :> logHead) = viewr $ logs db
+        case (mDur, mCat) of
+            (Just d, Just c) -> pure $ db {logs = rest |> (changeCategory c $ changeDuration d logHead) }
+            (Just d, Nothing) -> pure $ db {logs = rest |> (changeDuration d logHead) }
+            (Nothing, Just c) -> pure $ db {logs = rest |> (changeCategory c logHead) }
+            (Nothing, Nothing) -> pure db
