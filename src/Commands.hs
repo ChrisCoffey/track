@@ -41,7 +41,7 @@ commandParser = hsubparser $
     command "logs" (info logsCmd $ progDesc "Manage your time logs")
     where
     categoryCmd = newCategoryCommand <|> listCatsCommand <|> renameCategoryCmd
-    logsCmd = analyzeLogsCommand <|> deleteLogsCommand
+    logsCmd = analyzeLogsCommand <|> deleteLogsCommand <|> editLogCommand
 
 
 startCommand :: Parser InputCommand

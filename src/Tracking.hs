@@ -78,3 +78,5 @@ instance (Monad m, MonadReader Database m, MonadIO m, MonadError TTError m, Mona
             (Just d, Nothing) -> pure $ db {logs = rest |> (changeDuration d logHead) }
             (Nothing, Just c) -> pure $ db {logs = rest |> (changeCategory c logHead) }
             (Nothing, Nothing) -> pure db
+
+
