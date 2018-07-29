@@ -15,6 +15,7 @@ import Control.Monad.Writer (MonadWriter, tell)
 import Control.Monad.Trans (MonadIO, liftIO)
 import Data.Aeson.Encode.Pretty (encodePretty)
 import Data.Maybe (fromMaybe)
+import Data.List (intersperse)
 import Data.Semigroup ((<>))
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy.Char8 as BSC
@@ -60,15 +61,25 @@ evaluate o@(Opts {cmd, silent}) =
         SwitchTask cat mDesc -> do
             db' <- evaluate (o {cmd=StopTracking})
             local (const db') $ evaluate (o {cmd=StartTracking cat mDesc})
+
         DefineCategory cat -> defineCategory cat
         ListCategories -> listCategories
         ChangeCategoryName oldCat newCat -> changeCategoryName oldCat newCat
+
         Analyze {aStart, aEnd, aPath} -> do
             now <- fromInteger <$> TR.nowSeconds
             tz <- TR.getTimeZone
             reps <- R.allReports (fromMaybe 0 aStart) (fromMaybe now aEnd) tz
             writeBSCToFile aPath $ encodePretty reps
             ask
+        PreviewLogs _ -> do
+            Mgmt.Page preview <- Mgmt.previewLogs 0
+            tz <- TR.getTimeZone
+            let report = BSSC.unpack . prettyPrintLogEntry tz <$> preview
+                prettyReport = intersperse "\n" report
+            tell prettyReport
+            ask
+
         DeleteByTime mStartTs mEndTs -> do
             now <- fromInteger <$> TR.nowSeconds
             let st = (fromMaybe 0 mStartTs)

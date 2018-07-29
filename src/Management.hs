@@ -1,4 +1,5 @@
 module Management (
+    Page(..),
     MonadManagement(..),
 ) where
 
@@ -6,6 +7,7 @@ import Core
 
 import Control.Monad.Trans (MonadIO)
 import Control.Monad.Reader (MonadReader, ask)
+import Data.Foldable (toList)
 import Data.Time.Clock.POSIX (POSIXTime)
 import Numeric.Natural
 import qualified Data.Sequence as S
@@ -25,4 +27,9 @@ instance (Monad m, MonadReader Database m) =>
             db' = db {logs = afterFilter}
         pure db'
 
-    previewLogs = undefined
+    -- Initially, just put the entire page in here. Lets see how it looks
+    previewLogs since = do
+        db <- ask
+        let baseLogs = logs db
+            sinceTime = toList $ S.filter ((> since) . fromIntegral . start) baseLogs
+        pure $ Page sinceTime

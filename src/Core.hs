@@ -4,8 +4,11 @@ import Control.Monad.Reader (ReaderT)
 import Control.Monad.Except (ExceptT)
 import Control.Monad.Trans (MonadIO, liftIO)
 import Control.Concurrent.MVar (MVar, newEmptyMVar)
+import Data.Monoid ((<>))
+import Data.Maybe (fromMaybe)
 import Data.Time.Clock (NominalDiffTime)
-import Data.Time.Clock.POSIX (POSIXTime)
+import Data.Time.Clock.POSIX (POSIXTime, posixSecondsToUTCTime)
+import Data.Time.LocalTime (TimeZone, utcToLocalTime)
 import Data.Sequence (Seq)
 import Data.Serialize (Serialize)
 import qualified Data.Map as M
@@ -98,3 +101,17 @@ data TimeOfDay
     | Afternoon
     | Evening
     deriving (Show, Eq, Ord, Generic, ToJSON, ToJSONKey)
+
+prettyPrintLogEntry ::
+    TimeZone
+    -> LogEntry
+    -> T.ByteString
+prettyPrintLogEntry tz le =
+    ts <> " : " <> catName (cat le) <> " for " <> toFriendlyTime <> ". Details "<> details le
+    where
+        ts = BSC.pack . show . utcToLocalTime tz . posixSecondsToUTCTime . fromIntegral $ start le
+        d = fromMaybe 0 $ durationSecs le
+        toFriendlyTime = let
+            hrs = d `div` 3600
+            mins = (d `mod` 3600) `div` 60
+            in BSC.pack (show hrs <>":"<>show mins)

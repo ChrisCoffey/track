@@ -41,7 +41,7 @@ commandParser = hsubparser $
     command "logs" (info logsCmd $ progDesc "Manage your time logs")
     where
     categoryCmd = newCategoryCommand <|> listCatsCommand <|> renameCategoryCmd
-    logsCmd = analyzeLogsCommand <|> deleteLogsCommand <|> editLogCommand
+    logsCmd = analyzeLogsCommand <|> deleteLogsCommand <|> editLogCommand <|> previewLogsCommand
 
 
 startCommand :: Parser InputCommand
@@ -217,7 +217,11 @@ editLogCommand =
 
 
 previewLogsCommand :: Parser InputCommand
-previewLogsCommand = undefined
+previewLogsCommand =
+    subparser $ command "preview" (info parsePreview $
+        progDesc "Shows all of the past logs. In the future this will paginate, filter by category, and filter by time.")
+    where
+        parsePreview = pure $ PreviewLogs Nothing
 
 --
 -- Utility functions
