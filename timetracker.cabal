@@ -1,57 +1,59 @@
--- This file has been generated from package.yaml by hpack version 0.28.2.
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.1.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 4b45714abe34cc02964174919cb6f24edc3dbfc479f3c10ae45a03cb40921c26
+-- hash: 04360bdbdea9e1c5eca3d0d7dd95a4ab16e009da2697feff034c807be90bbeb2
 
 name:           timetracker
-version:        0.1.0.0
-description:    Please see the README on GitHub at <https://github.com/githubuser/timetracker#readme>
-homepage:       https://github.com/githubuser/timetracker#readme
-bug-reports:    https://github.com/githubuser/timetracker/issues
-author:         Author name here
-maintainer:     example@example.com
-copyright:      2018 Author name here
-license:        BSD3
+version:        0.2.0.0
+description:    Please see the README on GitHub at <https://github.com/CollegeVine/confcrypt#readme>
+homepage:       https://github.com/ChrisCoffey/track#readme
+bug-reports:    https://github.com/ChrisCoffey/track/issues
+author:         Chris Coffey
+maintainer:     chris@foldl.io
+copyright:      2018 Chris Coffey
+license:        MIT
 license-file:   LICENSE
 build-type:     Simple
-cabal-version:  >= 1.10
 extra-source-files:
-    ChangeLog.md
     README.md
+    ChangeLog.md
 
 source-repository head
   type: git
-  location: https://github.com/githubuser/timetracker
+  location: https://github.com/ChrisCoffey/track
 
 library
   exposed-modules:
+      Core
       Commands
-    , Core
-    , Evaluator
-    , Management
-    , Reports
-    , Storage
-    , Tracking
+      Management
+      Reports
+      Storage
+      Tracking
+      Evaluator
+  other-modules:
+      Paths_timetracker
   hs-source-dirs:
       src
+  default-extensions: MultiParamTypeClasses OverloadedStrings FlexibleContexts FlexibleInstances NamedFieldPuns TupleSections DeriveGeneric DeriveAnyClass FunctionalDependencies TypeApplications UndecidableInstances GADTs ConstraintKinds
+  ghc-options: -optP-Wno-nonportable-include-path
   build-depends:
-      base >=4.7 && <5
-    , text
-    , bytestring
-    , mtl
-    , transformers
-    , cereal
-    , time
-    , containers
-    , optparse-applicative
-    , aeson
+      aeson
     , aeson-pretty
+    , base >=4.7 && <5
+    , bytestring >=0.10.8 && <0.11
+    , cereal
+    , containers >=0.5.11
+    , mtl >=2.2 && <2.3
+    , optparse-applicative >=0.14 && <0.15
     , parsec
+    , text >=1.2
+    , time
+    , transformers
   default-language: Haskell2010
-  default-extensions: OverloadedStrings DeriveAnyClass NamedFieldPuns GADTs DeriveGeneric
-                      DefaultSignatures FlexibleContexts FlexibleInstances UndecidableInstances
-                      ConstraintKinds
 
 executable track
   main-is: Main.hs
@@ -59,24 +61,57 @@ executable track
       Paths_timetracker
   hs-source-dirs:
       app
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  default-extensions: MultiParamTypeClasses OverloadedStrings FlexibleContexts FlexibleInstances NamedFieldPuns TupleSections DeriveGeneric DeriveAnyClass FunctionalDependencies TypeApplications UndecidableInstances GADTs ConstraintKinds
+  ghc-options: -optP-Wno-nonportable-include-path -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
-    , timetracker
-    , mtl
-    , transformers
+      aeson
+    , aeson-pretty
+    , base >=4.7 && <5
+    , bytestring >=0.10.8 && <0.11
+    , cereal
+    , containers >=0.5.11
     , directory
+    , mtl >=2.2 && <2.3
+    , optparse-applicative >=0.14 && <0.15
+    , parsec
+    , text >=1.2
+    , time
+    , timetracker
+    , transformers
   default-language: Haskell2010
 
 test-suite timetracker-test
   type: exitcode-stdio-1.0
-  main-is: Spec.hs
+  main-is: Tests.hs
   other-modules:
-      Paths_timetracker
+      Tests.Tracking
+      Tests.Core
+      Tests.Evaluator
+      Tests.Management
+      Tests.Reports
+      Tests.Storage
   hs-source-dirs:
       test
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+      app
+  default-extensions: MultiParamTypeClasses OverloadedStrings FlexibleContexts FlexibleInstances NamedFieldPuns TupleSections DeriveGeneric DeriveAnyClass FunctionalDependencies TypeApplications UndecidableInstances GADTs ConstraintKinds
+  ghc-options: -optP-Wno-nonportable-include-path -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      HUnit
+    , QuickCheck
+    , aeson
+    , aeson-pretty
+    , base >=4.7 && <5
+    , bytestring >=0.10.8 && <0.11
+    , cereal
+    , containers >=0.5.11
+    , mtl >=2.2 && <2.3
+    , optparse-applicative >=0.14 && <0.15
+    , parsec
+    , tasty
+    , tasty-hunit
+    , tasty-quickcheck
+    , text >=1.2
+    , time
     , timetracker
+    , transformers
   default-language: Haskell2010

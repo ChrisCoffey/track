@@ -1,0 +1,93 @@
+name:                timetracker
+version:             0.2.0.0
+github:              ChrisCoffey/track
+license:             MIT
+author:              "Chris Coffey"
+maintainer:          "chris@foldl.io"
+copyright:           "2018 Chris Coffey"
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+description:         Please see the README on GitHub at <https://github.com/CollegeVine/confcrypt#readme>
+
+dependencies:
+- aeson
+- aeson-pretty
+- base >= 4.7 && < 5
+- bytestring >= 0.10.8 && < 0.11
+- cereal
+- containers >= 0.5.11
+- mtl >= 2.2 && < 2.3
+- optparse-applicative >= 0.14 && < 0.15
+- parsec
+- text >= 1.2
+- time
+- transformers
+
+default-extensions:
+    MultiParamTypeClasses
+    OverloadedStrings
+    FlexibleContexts
+    FlexibleInstances
+    NamedFieldPuns
+    TupleSections
+    DeriveGeneric
+    DeriveAnyClass
+    FunctionalDependencies
+    TypeApplications
+    UndecidableInstances
+    GADTs
+    ConstraintKinds
+
+# This tells clang not to print an ugly warning because we use a macro-generated module
+ghc-options: ["-optP-Wno-nonportable-include-path"]
+
+library:
+  source-dirs: src
+  exposed-modules:
+    - Core
+    - Commands
+    - Management
+    - Reports
+    - Storage
+    - Tracking
+    - Evaluator
+
+executables:
+  track:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - timetracker
+    - directory
+
+tests:
+  timetracker-test:
+    main:                Tests.hs
+    source-dirs:
+        - test
+        - app
+    other-modules:
+        - Tests.Tracking
+        - Tests.Core
+        - Tests.Evaluator
+        - Tests.Management
+        - Tests.Reports
+        - Tests.Storage
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - timetracker
+    - tasty
+    - tasty-quickcheck
+    - QuickCheck
+    - tasty-hunit
+    - HUnit
