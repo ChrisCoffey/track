@@ -23,13 +23,14 @@ import qualified Data.ByteString.Char8 as BSSC
 import Data.Foldable (traverse_)
 import System.IO (putStrLn, getLine)
 
+-- | This class represents the interactive elements of track's operation
 class Monad m => MonadInput m where
     chooseOne :: Show a => [a] -> m a
 
 instance (Monad m, MonadIO m ) => MonadInput m where
     chooseOne choices = do
         let choiceMessages = asDisplayChoice <$> zipwithIndex choices
-        traverse (liftIO . putStrLn) choiceMessages
+        traverse_ (liftIO . putStrLn) choiceMessages
         n <- read <$> liftIO getLine
         pure . head $ drop n choices
         where
@@ -38,6 +39,7 @@ instance (Monad m, MonadIO m ) => MonadInput m where
         asDisplayChoice (i,v) =
             show i <> " ) "<> show v
 
+-- | For handling output from track. Used for dumping reports to json currently
 class Monad m => MonadOutput m where
     writeBSCToFile :: FilePath -> BSC.ByteString -> m ()
 
@@ -82,9 +84,9 @@ evaluate o@(Opts {cmd, silent}) =
 
         DeleteByTime mStartTs mEndTs -> do
             now <- fromInteger <$> TR.nowSeconds
-            let st = (fromMaybe 0 mStartTs)
-                end = (fromMaybe now mEndTs)
-                pred le = (fromInteger $ start le) >= st && (fromInteger $ start le) <= end
+            let st = fromMaybe 0 mStartTs
+                end = fromMaybe now mEndTs
+                pred le = fromInteger (start le) >= st && fromInteger (start le) <= end
             Mgmt.deleteLogs pred
         DeleteByCategory dCat ->
             Mgmt.deleteLogs ((==) dCat . cat)

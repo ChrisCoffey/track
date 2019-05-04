@@ -12,10 +12,15 @@ import Data.Time.Clock.POSIX (POSIXTime)
 import Numeric.Natural
 import qualified Data.Sequence as S
 
+-- | Represents a single page of data
 newtype Page a = Page {vals :: [a]}
 
+-- | A class for handling the meta operations on the database.
 class MonadManagement m where
+    -- | Remove all logs messages matching the provided filter. Filters are specified on the
+    -- command line.
     deleteLogs :: (LogEntry -> Bool) -> m Database
+    -- | Return a page of activity logs
     previewLogs :: POSIXTime -> m (Page LogEntry)
 
 instance (Monad m, MonadReader Database m) =>

@@ -14,8 +14,7 @@ import qualified Data.Map as M
 import Data.Maybe (fromMaybe)
 import Data.Sequence (Seq)
 
-
-
+-- | Evaluate all of the reports against the current activity database
 allReports :: (Monad m, MonadReader Database m) =>
     POSIXTime
     -> POSIXTime
@@ -36,6 +35,7 @@ allReports start end tz = do
         categorySizeReport
     }
 
+-- | Calculates how much time has been spent in each category over the provided time window
 runCategoryReport ::
     POSIXTime
     -> POSIXTime
@@ -45,9 +45,15 @@ runCategoryReport sts end =
     foldr addRecord M.empty
     where
         addRecord (LogEntry {cat, start, durationSecs}) acc
-            | (fromInteger start) > sts && (fromInteger start) <= end = M.insertWith (+) cat (fromIntegral $ fromMaybe 0 durationSecs) acc
+            | (fromInteger start) > sts && (fromInteger start) <= end =
+                M.insertWith (+)
+                             cat
+                             (fromIntegral $ fromMaybe 0 durationSecs)
+                             acc
             | otherwise = acc
 
+-- | Calculates how much time has been spent in each part of the day, regardless of category. I.e. when are you doing
+-- most of your work?
 runTimeOfDayReport ::
     POSIXTime
     -> POSIXTime
@@ -59,9 +65,13 @@ runTimeOfDayReport sts end tz =
     where
         addRecord (LogEntry {start, durationSecs}) acc
             | (fromInteger start) > sts && (fromInteger start) <= end =
-                M.insertWith (+) (computeTimeOfDay tz (fromInteger start)) (fromIntegral $ fromMaybe 0 durationSecs) acc
+                M.insertWith (+)
+                             (computeTimeOfDay tz (fromInteger start))
+                             (fromIntegral $ fromMaybe 0 durationSecs)
+                             acc
             | otherwise = acc
 
+-- | Honestly, I don't remember what this is supposed to do. I'm going to delete it
 runSizeReport ::
     POSIXTime
     -> POSIXTime
@@ -69,6 +79,7 @@ runSizeReport ::
     -> SizeReport
 runSizeReport sts end rawData = SizeReport 0 0.0 0.0
 
+-- | Translates a posix timestamp into the 'TimeOfDay' given a particular timezone.
 computeTimeOfDay ::
     TimeZone
     -> POSIXTime

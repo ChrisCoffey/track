@@ -21,12 +21,14 @@ import qualified Data.ByteString.Char8 as BSC
 defaultDbFile :: FilePath
 defaultDbFile = "/usr/local/bin/.timeDb"
 
+-- | Represents a category of work that can be tracked. Right now names are their own keys.
 newtype Category = Category {catName :: T.ByteString}
     deriving (Eq, Ord, Show, Serialize, Generic, ToJSONKey)
 
 instance ToJSON Category where
     toJSON = toJSON . BSC.unpack . catName
 
+-- | An activity entry.
 data LogEntry =
     LogEntry {cat:: Category,
               details:: T.ByteString,
@@ -34,6 +36,7 @@ data LogEntry =
               durationSecs :: Maybe Int }
     deriving (Eq, Ord, Show, Serialize, Generic)
 
+-- | The activity log, along with the set of supported 'Category' values
 data Database =
     Database {
         categories :: [Category],
@@ -47,7 +50,7 @@ data TTError
     | UserError T.ByteString
     deriving (Show)
 
-
+-- | Parsed command line options and flags
 data Options =
     Opts {
         cmd :: InputCommand,
@@ -55,6 +58,7 @@ data Options =
         dbFile :: FilePath
     } deriving (Show)
 
+-- | The commands track supports
 data InputCommand
     = StartTracking Category (Maybe T.ByteString)
     | StopTracking
@@ -77,7 +81,7 @@ data InputCommand
     | EditSplit [(Category, Int)]
     deriving (Eq, Show, Generic)
 
--- Represents the
+-- | Represents the full set of reports that track can perform. This is a silly data structure right now.
 data Report
     = Report {
         startTime :: POSIXTime,
@@ -94,6 +98,8 @@ data SizeReport =
         stdDev :: Double
     } deriving (Show, Generic, ToJSON)
 
+-- | A normalized time of day. The bucket sizes are not equal, but instead equate to the times
+-- that I perceive the term to mean.
 data TimeOfDay
     = LateNight
     | Morning
@@ -102,6 +108,7 @@ data TimeOfDay
     | Evening
     deriving (Show, Eq, Ord, Generic, ToJSON, ToJSONKey)
 
+-- | A helper that prints the pretty version of a log entry out, given the user's current timezone
 prettyPrintLogEntry ::
     TimeZone
     -> LogEntry

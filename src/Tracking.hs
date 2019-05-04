@@ -1,3 +1,5 @@
+-- | This module provides the core interface for tracking work.
+-- The details of how work is tracked are explained on the 'MonadTracking' class declaration.
 module Tracking where
 
 import Core
@@ -13,22 +15,31 @@ import Data.Time.Clock.POSIX (getPOSIXTime)
 import Data.Time.LocalTime (TimeZone, getCurrentTimeZone)
 import Data.Sequence ((|>), ViewR(..), viewr)
 
--- Tracking requires the app to be running. There may only be a single active tracking
--- event at a time
-
+-- | Tracking activities is an inherently stateful operation, and this class provides the interface
+-- for those operations.
+--
+-- When it comes to tracking activities, there are two core operations,
+-- starting and stopping tracking. Tracking begins with a call to 'startTracking', after which the
+-- only allowed operation is calling 'stopTracking'. The idea is that you can only do one thing at a time,
+-- so there's no sense in allowing users to start multiple work items.
 class Monad m => MonadTracking m where
-    -- | Begin tracking a category
+    -- | Begin tracking a category. This is intended to modify the database.
     startTracking :: Category -> Maybe BS.ByteString -> m Database
-    changeDetails :: BS.ByteString -> m Database
+    -- | Stop tracking the currently active task. This only makes sense to call if there
+    -- is an active element in the database
     stopTracking :: m Database
+    -- | Change the details associated with the most recent log entry
+    changeDetails :: BS.ByteString -> m Database
+    -- | Change the duration or category on the most recently stored log entry.
     modifyLogHead :: Maybe Int -> Maybe Category -> m Database
 
+-- | An abstraction for working with the system clock & timezone data.
 class MonadTime m where
     nowSeconds :: m Integer
     getTimeZone :: m TimeZone
 
 instance (Monad m, MonadIO m) => MonadTime m where
-    nowSeconds =(fromIntegral . floor) <$> liftIO getPOSIXTime
+    nowSeconds = fromIntegral . floor <$> liftIO getPOSIXTime
     getTimeZone = liftIO getCurrentTimeZone
 
 instance (Monad m, MonadReader Database m, MonadIO m, MonadError TTError m, MonadTime m) =>
@@ -74,9 +85,9 @@ instance (Monad m, MonadReader Database m, MonadIO m, MonadError TTError m, Mona
             changeCategory c le = le {cat = c}
             (rest :> logHead) = viewr $ logs db
         case (mDur, mCat) of
-            (Just d, Just c) -> pure $ db {logs = rest |> (changeCategory c $ changeDuration d logHead) }
-            (Just d, Nothing) -> pure $ db {logs = rest |> (changeDuration d logHead) }
-            (Nothing, Just c) -> pure $ db {logs = rest |> (changeCategory c logHead) }
+            (Just d, Just c) -> pure $ db {logs = rest |> changeCategory c ( changeDuration d logHead ) }
+            (Just d, Nothing) -> pure $ db {logs = rest |> changeDuration d logHead }
+            (Nothing, Just c) -> pure $ db {logs = rest |> changeCategory c logHead }
             (Nothing, Nothing) -> pure db
 
 
