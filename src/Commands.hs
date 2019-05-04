@@ -21,7 +21,8 @@ import Paths_timetracker (version)
 
 defaultParser :: IO Options
 defaultParser =
-    execParser $ info (optionsParser <**> helper) fullDesc
+    customExecParser (prefs $ showHelpOnEmpty <> showHelpOnError) $
+        info (optionsParser <**> helper) fullDesc
 
 optionsParser :: Parser Options
 optionsParser =
