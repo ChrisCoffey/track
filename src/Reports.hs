@@ -1,7 +1,6 @@
 module Reports (
     allReports,
     runTimeOfDayReport,
-    runSizeReport,
     runCategoryReport
 ) where
 
@@ -26,13 +25,11 @@ allReports start end tz = do
         datum = logs db
         categoryReport = runCategoryReport start end datum
         timeOfDayReport = runTimeOfDayReport start end tz datum
-        categorySizeReport = M.empty -- runSizeReport start end datum
     pure Report {
         startTime = start,
         endTime = end,
         timeOfDayReport,
-        categoryReport,
-        categorySizeReport
+        categoryReport
     }
 
 -- | Calculates how much time has been spent in each category over the provided time window
@@ -71,13 +68,6 @@ runTimeOfDayReport sts end tz =
                              acc
             | otherwise = acc
 
--- | Honestly, I don't remember what this is supposed to do. I'm going to delete it
-runSizeReport ::
-    POSIXTime
-    -> POSIXTime
-    -> Seq LogEntry
-    -> SizeReport
-runSizeReport sts end rawData = SizeReport 0 0.0 0.0
 
 -- | Translates a posix timestamp into the 'TimeOfDay' given a particular timezone.
 computeTimeOfDay ::

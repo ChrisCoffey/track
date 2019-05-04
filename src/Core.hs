@@ -88,16 +88,8 @@ data Report
         startTime :: POSIXTime,
         endTime :: POSIXTime,
         categoryReport :: M.Map Category NominalDiffTime,
-        timeOfDayReport :: M.Map TimeOfDay NominalDiffTime,
-        categorySizeReport :: M.Map Category SizeReport
+        timeOfDayReport :: M.Map TimeOfDay NominalDiffTime
         } deriving (Show, Generic, ToJSON)
-
-data SizeReport =
-    SizeReport {
-        count :: Natural,
-        mean :: Double,
-        stdDev :: Double
-    } deriving (Show, Generic, ToJSON)
 
 -- | A normalized time of day. The bucket sizes are not equal, but instead equate to the times
 -- that I perceive the term to mean.
