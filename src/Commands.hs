@@ -12,10 +12,12 @@ import qualified Data.ByteString.Char8 as BSC
 import Data.Time.LocalTime ( localTimeToUTC)
 import Data.Time.Format (defaultTimeLocale, parseTimeM, iso8601DateFormat)
 import Data.Time.Clock.POSIX (POSIXTime, utcTimeToPOSIXSeconds)
+import Data.Version (showVersion)
 import Text.Parsec (parse, sepBy, many1)
 import Text.Parsec.Char (digit, char, letter, space)
 import GHC.Generics (Generic)
 import Options.Applicative
+import Paths_timetracker (version)
 
 defaultParser :: IO Options
 defaultParser =
@@ -30,6 +32,8 @@ optionsParser =
 
 commandParser :: Parser InputCommand
 commandParser = hsubparser $
+    command "version" (info versionCommand $ progDesc "The installed version of track")
+    <>
     command "start" (info startCommand $ progDesc "Start tracking time against a particular category of work")
     <>
     command "stop" (info stopCommand $ progDesc "Stop tracking time. Generally useful at the end of the day")
@@ -42,6 +46,9 @@ commandParser = hsubparser $
     where
     categoryCmd = newCategoryCommand <|> listCatsCommand <|> renameCategoryCmd
     logsCmd = analyzeLogsCommand <|> deleteLogsCommand <|> editLogCommand <|> previewLogsCommand
+
+versionCommand :: Parser InputCommand
+versionCommand = pure . Version . BSC.pack $ showVersion version
 
 
 startCommand :: Parser InputCommand

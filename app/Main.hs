@@ -9,6 +9,7 @@ import Control.Monad.Trans (liftIO)
 import Control.Monad.Reader (runReaderT, ReaderT)
 import Control.Monad.Writer (execWriterT, WriterT)
 import Control.Monad.Except (runExceptT, ExceptT)
+import Data.Foldable (traverse_)
 import Data.Either (either)
 import System.Directory (doesFileExist)
 import System.Exit (exitFailure)
@@ -27,7 +28,7 @@ main = do
     case partial of
         Left  e -> print e *> exitFailure
         Right logs ->
-            print logs
+            traverse_ putStrLn logs
 
 initializeIfNecessary ::
     FilePath

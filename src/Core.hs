@@ -79,6 +79,7 @@ data InputCommand
     | PreviewLogs (Maybe Category)
     | EditDetails (Maybe Int) (Maybe Category)
     | EditSplit [(Category, Int)]
+    | Version T.ByteString
     deriving (Eq, Show, Generic)
 
 -- | Represents the full set of reports that track can perform. This is a silly data structure right now.

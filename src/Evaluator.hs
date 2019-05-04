@@ -9,7 +9,7 @@ import qualified Reports as R
 import qualified Management as Mgmt
 
 import Control.Monad (when)
-import Control.Monad.Reader (MonadReader, ask, local)
+import Control.Monad.Reader (MonadReader, ask, local, asks)
 import Control.Monad.Except (MonadError, throwError)
 import Control.Monad.Writer (MonadWriter, tell)
 import Control.Monad.Trans (MonadIO, liftIO)
@@ -32,7 +32,7 @@ instance (Monad m, MonadIO m ) => MonadInput m where
         let choiceMessages = asDisplayChoice <$> zipwithIndex choices
         traverse_ (liftIO . putStrLn) choiceMessages
         n <- read <$> liftIO getLine
-        pure . head $ drop n choices
+        pure ( choices !! n )
         where
         zipwithIndex = zip [0..]
 
@@ -48,6 +48,8 @@ instance (Monad m, MonadIO m) => MonadOutput m where
 
 type EvalM m = (Monad m, MonadReader Database m, MonadError TTError m)
 
+-- | The main function. This applies the command line arguments to the current database state
+-- and returns any relevant results.
 evaluate :: (EvalM m, MonadWriter [String] m, MonadOutput m,
             TR.MonadTracking m, MonadInput m, TR.MonadTime m)=>
     Options
@@ -55,7 +57,7 @@ evaluate :: (EvalM m, MonadWriter [String] m, MonadOutput m,
 evaluate o@(Opts {cmd, silent}) =
     case cmd of
         StartTracking (Category "") mDesc -> do
-            cats <- categories <$> ask
+            cats <- asks categories
             cat <- chooseOne cats
             evaluate (o {cmd=StartTracking cat mDesc} )
         StartTracking cat mDesc -> TR.startTracking cat mDesc
@@ -92,7 +94,10 @@ evaluate o@(Opts {cmd, silent}) =
             Mgmt.deleteLogs ((==) dCat . cat)
         EditDetails mDur mCat ->
             TR.modifyLogHead mDur mCat
-        _ -> ask
+
+        Version version -> do
+            tell ["version: " <> BSSC.unpack version]
+            ask
 
 defineCategory :: (EvalM m) =>
     Category
@@ -101,7 +106,7 @@ defineCategory c = do
     db <- ask
     let cats = categories db
     when (c `elem` cats) $
-        throwError $ UserError "This category is already in the databse. No need to add it."
+        throwError $ UserError "This category is already in the database. No need to add it."
     pure $ db {categories=c:cats}
 
 listCategories :: (EvalM m, MonadWriter [String] m) =>
