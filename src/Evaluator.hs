@@ -56,15 +56,15 @@ evaluate :: (EvalM m, MonadWriter [String] m, MonadOutput m,
     -> m Database
 evaluate o@(Opts {cmd, silent}) =
     case cmd of
-        StartTracking (Category "") mDesc -> do
+        StartTracking (Category "") -> do
             cats <- asks categories
             cat <- chooseOne cats
-            evaluate (o {cmd=StartTracking cat mDesc} )
-        StartTracking cat mDesc -> TR.startTracking cat mDesc
+            evaluate (o {cmd= StartTracking cat} )
+        StartTracking cat -> TR.startTracking cat
         StopTracking -> TR.stopTracking
-        SwitchTask cat mDesc -> do
+        SwitchTask cat -> do
             db' <- evaluate (o {cmd=StopTracking})
-            local (const db') $ evaluate (o {cmd=StartTracking cat mDesc})
+            local (const db') $ evaluate (o {cmd=StartTracking cat})
 
         DefineCategory cat -> defineCategory cat
         ListCategories -> listCategories

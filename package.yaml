@@ -1,5 +1,5 @@
 name:                timetracker
-version:             0.2.0.0
+version:             0.2.0.2
 github:              ChrisCoffey/track
 license:             MIT
 author:              "Chris Coffey"
@@ -10,7 +10,7 @@ extra-source-files:
 - README.md
 - ChangeLog.md
 
-description:         Please see the README on GitHub at <https://github.com/CollegeVine/confcrypt#readme>
+description:         Please see the README on GitHub at <https://github.com/ChrisCoffey/track#readme>
 
 dependencies:
 - aeson
@@ -69,17 +69,12 @@ executables:
 
 tests:
   timetracker-test:
-    main:                Tests.hs
+    main:                Spec.hs
     source-dirs:
         - test
         - app
     other-modules:
-        - Tests.Tracking
-        - Tests.Core
         - Tests.Evaluator
-        - Tests.Management
-        - Tests.Reports
-        - Tests.Storage
     ghc-options:
     - -threaded
     - -rtsopts

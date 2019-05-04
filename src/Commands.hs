@@ -60,16 +60,6 @@ startCommand =
                                help "The Category to track against" <>
                                value "")
     )
-    <*>
-    ( emptyStringToNothing
-    <$> strOption
-        (long "desc" <>
-        short 'd' <>
-        metavar "DESCIRPTION" <>
-        help "An optional description for the task" <>
-        value ""
-    )
-    )
 
 
 stopCommand :: Parser InputCommand
@@ -82,16 +72,6 @@ switchCommand =
     Category <$> argument str (metavar "Category" <>
                                help "The Category to track against" <>
                                value "")
-    )
-    <*>
-    ( emptyStringToNothing
-    <$> strOption
-        (long "desc" <>
-        short 'd' <>
-        metavar "DESCIRPTION" <>
-        help "An optional description for the task" <>
-        value ""
-        )
     )
 
 --

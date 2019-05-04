@@ -31,17 +31,22 @@ instance ToJSON Category where
 -- | An activity entry.
 data LogEntry =
     LogEntry {cat:: Category,
-              details:: T.ByteString,
               start :: Integer,
-              durationSecs :: Maybe Int }
+              durationSecs :: Natural}
     deriving (Eq, Ord, Show, Serialize, Generic)
+
+data PendingEntry =
+    PendingEntry {
+        peCat :: Category,
+        peStart :: Integer
+    } deriving (Eq, Ord, Show, Serialize, Generic)
 
 -- | The activity log, along with the set of supported 'Category' values
 data Database =
     Database {
         categories :: [Category],
         logs :: Seq LogEntry,
-        currentActivity :: Maybe LogEntry
+        currentActivity :: Maybe PendingEntry
         }
     deriving (Eq, Ord, Show, Serialize, Generic)
 
@@ -60,9 +65,9 @@ data Options =
 
 -- | The commands track supports
 data InputCommand
-    = StartTracking Category (Maybe T.ByteString)
+    = StartTracking Category
     | StopTracking
-    | SwitchTask Category (Maybe T.ByteString)
+    | SwitchTask Category
     | DefineCategory Category
     | ListCategories
     | ChangeCategoryName Category Category
@@ -85,11 +90,28 @@ data InputCommand
 -- | Represents the full set of reports that track can perform. This is a silly data structure right now.
 data Report
     = Report {
-        startTime :: POSIXTime,
-        endTime :: POSIXTime,
+        window :: ReportWindow,
         categoryReport :: M.Map Category NominalDiffTime,
-        timeOfDayReport :: M.Map TimeOfDay NominalDiffTime
+        timeOfDayReport :: M.Map TimeOfDay NominalDiffTime,
+        contextSwitchReport :: ContextSwitchReport
         } deriving (Show, Generic, ToJSON)
+
+data ReportWindow =
+    ReportWindow {
+        startTime :: POSIXTime,
+        endTime :: POSIXTime
+    } deriving (Show, Generic, ToJSON)
+
+-- | A specific report that extracts all of the context switches during a particular window.
+-- It includes summary statistics with interrupt counts & interrupted-by counts for
+data ContextSwitchReport =
+    ContextSwitchReport {
+        total :: Natural,
+        byTimeOfDay :: M.Map TimeOfDay Natural,
+        interruptByCategory :: M.Map Category Natural,
+        interruptedByCategory :: M.Map Category Natural
+    } deriving (Show, Generic, ToJSON)
+
 
 -- | A normalized time of day. The bucket sizes are not equal, but instead equate to the times
 -- that I perceive the term to mean.
@@ -107,10 +129,10 @@ prettyPrintLogEntry ::
     -> LogEntry
     -> T.ByteString
 prettyPrintLogEntry tz le =
-    ts <> " : " <> catName (cat le) <> " for " <> toFriendlyTime <> ". Details "<> details le
+    ts <> " : " <> catName (cat le) <> " for " <> toFriendlyTime
     where
         ts = BSC.pack . show . utcToLocalTime tz . posixSecondsToUTCTime . fromIntegral $ start le
-        d = fromMaybe 0 $ durationSecs le
+        d = durationSecs le
         toFriendlyTime = let
             hrs = d `div` 3600
             mins = (d `mod` 3600) `div` 60

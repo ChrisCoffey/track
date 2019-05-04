@@ -24,12 +24,10 @@ import Data.Sequence ((|>), ViewR(..), viewr)
 -- so there's no sense in allowing users to start multiple work items.
 class Monad m => MonadTracking m where
     -- | Begin tracking a category. This is intended to modify the database.
-    startTracking :: Category -> Maybe BS.ByteString -> m Database
+    startTracking :: Category -> m Database
     -- | Stop tracking the currently active task. This only makes sense to call if there
     -- is an active element in the database
     stopTracking :: m Database
-    -- | Change the details associated with the most recent log entry
-    changeDetails :: BS.ByteString -> m Database
     -- | Change the duration or category on the most recently stored log entry.
     modifyLogHead :: Maybe Int -> Maybe Category -> m Database
 
@@ -44,35 +42,32 @@ instance (Monad m, MonadIO m) => MonadTime m where
 
 instance (Monad m, MonadReader Database m, MonadIO m, MonadError TTError m, MonadTime m) =>
     MonadTracking m where
-    startTracking cat perhapsDescription = do
+    startTracking cat = do
         db <- ask
         when (isJust $ currentActivity db) . throwError $
             UserError "There is an activity in progress already. You can't do two things at once."
         when (cat `notElem` categories db) . throwError $
             UserError "Unknown category. Add to your list before tracking."
         now <- nowSeconds
-        pure $ db {currentActivity = Just LogEntry
+        pure $ db {currentActivity = Just PendingEntry
                 {
-                    cat,
-                    start = now,
-                    details = fromMaybe "" perhapsDescription,
-                    durationSecs = Nothing
+                    peCat = cat,
+                    peStart = now
                 }
             }
-
-    changeDetails newDetails = do
-        db <- ask
-        ca <- maybe (throwError $ UserError "No active activity to update. Start tracking something first.") pure $ currentActivity db
-        pure $ db {currentActivity = Just $ ca {details = newDetails}}
 
     stopTracking = do
         db <- ask
         now <- nowSeconds
         ca <- maybe (throwError $ UserError "No active activity to terminate. Start tracking something first.") pure $ currentActivity db
         let lgs = logs db
-            startTime = start ca
+            startTime = peStart ca
             duration = fromIntegral $ now - startTime
-            ca' = ca {durationSecs = Just duration}
+            ca' = LogEntry {
+                start = startTime,
+                cat = peCat ca,
+                durationSecs = duration
+                }
             db' = db {
                 logs = lgs |> ca',
                 currentActivity = Nothing
@@ -81,7 +76,7 @@ instance (Monad m, MonadReader Database m, MonadIO m, MonadError TTError m, Mona
 
     modifyLogHead mDur mCat = do
         db <- ask
-        let changeDuration d le = le {durationSecs = Just d}
+        let changeDuration d le = le {durationSecs = fromIntegral d}
             changeCategory c le = le {cat = c}
             (rest :> logHead) = viewr $ logs db
         case (mDur, mCat) of
