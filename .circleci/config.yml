@@ -1,0 +1,31 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: fpco/stack-build:lts
+    steps:
+      - checkout
+      - restore_cache:
+          name: Restore Cached Dependencies
+          keys:
+            - track-build-{{ checksum "package.yaml" }}
+      - run:
+          name: Resolve/Update Dependencies
+          command: stack setup
+      - run:
+          name: Run tests
+          command: stack test
+      - run:
+          name: Install executable
+          command: stack install
+      - save_cache:
+          name: Cache Dependencies
+          key: track-build-{{ checksum "package.yaml" }}
+          paths:
+            - ".stack-work"
+            - "/root/.stack"
+      - store_artifacts: # upload build artifact for display in CircleCi
+          path: ~/.local/bin/track
+          destination: track
+
+

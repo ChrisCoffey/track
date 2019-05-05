@@ -1,4 +1,7 @@
 # timetracker
+
+[![CircleCI](https://circleci.com/gh/ChrisCoffey/track/tree/master.svg?style=svg)](https://circleci.com/gh/ChrisCoffey/track/tree/master)
+
 TimeTracker (`track`) is a small command-line application for tracking how your time is spent. There are dozens of web and/or desktop time tracking applications, but they're almost exsclusively focused on tracking time against projects for billing. I've personally used several of these for freelance work & they're generally great. Unfortunatley, what I'm looking for is simply user-driven time tracking from the command line.
 
 ### Inspiration
