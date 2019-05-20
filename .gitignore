@@ -1,3 +1,11 @@
 .stack-work/
 *~
 timetracker.cabal
+
+**/*.js.map
+visualization/**/*.js
+visualization/**/*.d.ts
+visualization/node_modules/*
+visualization/output/*
+visualization/yarn-error.log
+
