@@ -8,4 +8,4 @@ visualization/**/*.d.ts
 visualization/node_modules/*
 visualization/output/*
 visualization/yarn-error.log
-
+visualization/dist/
