@@ -9,20 +9,20 @@ export enum TimeOfDay {
     ,Evening = "Evening"
 }
 
-export parseTimeOfDay(term: string): TimeOfDay | ValidationFailure {
-    switch(term.toLower()){
+export function parseTimeOfDay(term: string): TimeOfDay | ValidationFailure {
+    switch(term.toLowerCase()){
         case "latenight":
-            return LateNight;
+            { return TimeOfDay.LateNight; }
         case "morning":
-            return Morning;
+            { return TimeOfDay.Morning; }
         case "midday":
-            return MidDay;
+            { return TimeOfDay.MidDay; }
         case "afternoon":
-            return Afternoon;
+            { return TimeOfDay.Afternoon; }
         case "evening":
-            return Evening;
+            { return TimeOfDay.Evening; }
         default:
-            return new ValidationFailure(term + " is not a valid TimeOfDay.");
+            { return new ValidationFailure(term + " is not a valid TimeOfDay."); }
     }
 }
 
