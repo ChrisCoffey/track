@@ -21,7 +21,7 @@ describe('TimeOfDay', () => {
     })
 
     it("returns a validation error if it fails to parse", () => {
-        expect((<ValidationFailure>parseTimeOfDay("foo")).message).to.equal("foo is not a valid TimeOfDay");
+        expect((<ValidationFailure>parseTimeOfDay("foo")).message).to.equal("foo is not a valid TimeOfDay.");
     });
 
 });
