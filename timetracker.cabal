@@ -4,11 +4,11 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 04360bdbdea9e1c5eca3d0d7dd95a4ab16e009da2697feff034c807be90bbeb2
+-- hash: 3a48a9e8ae8f17f550133304e967e7042407fcad74d7ca4a91331789d739c6a8
 
 name:           timetracker
-version:        0.2.0.0
-description:    Please see the README on GitHub at <https://github.com/CollegeVine/confcrypt#readme>
+version:        0.2.0.2
+description:    Please see the README on GitHub at <https://github.com/ChrisCoffey/track#readme>
 homepage:       https://github.com/ChrisCoffey/track#readme
 bug-reports:    https://github.com/ChrisCoffey/track/issues
 author:         Chris Coffey
@@ -82,14 +82,9 @@ executable track
 
 test-suite timetracker-test
   type: exitcode-stdio-1.0
-  main-is: Tests.hs
+  main-is: Spec.hs
   other-modules:
-      Tests.Tracking
-      Tests.Core
       Tests.Evaluator
-      Tests.Management
-      Tests.Reports
-      Tests.Storage
   hs-source-dirs:
       test
       app
