@@ -9,6 +9,7 @@ export enum TimeOfDay {
     ,Evening = "Evening"
 }
 
+
 export function parseTimeOfDay(term: string): TimeOfDay | ValidationFailure {
     switch(term.toLowerCase()){
         case "latenight":
@@ -22,26 +23,43 @@ export function parseTimeOfDay(term: string): TimeOfDay | ValidationFailure {
         case "evening":
             { return TimeOfDay.Evening; }
         default:
-            { return new ValidationFailure(term + " is not a valid TimeOfDay."); }
+            { return new ValidationFailure(
+                term + " is not a valid TimeOfDay.");
+            }
     }
 }
 
 export class ValidationFailure {
-    readonly message: string;
+    public readonly message: string;
     constructor(msg: string){
         this.message = msg;
     }
 }
 
 export class Natural {
-    readonly n : number
+    public readonly n : number
     constructor(value : number) {
         if( value >= 0){
             this.n = value;
         }
         else {
-            throw new RangeError(value + " is less than 0, and therefore not a natural number.")
+            throw new RangeError(
+                value + " is less than 0, and therefore not a natural number.");
         }
+    }
+}
+
+export function unmatched() {
+    throw new Error("Non-exhaustive pattern");
+}
+
+// Creates a new natural, or returns a failure indicating that it was out of range
+export function toNatural (n: number) : Natural | ValidationFailure {
+    try {
+        const nat = new Natural(n);
+        return nat;
+    } catch (RangeError) {
+        return new ValidationFailure(RangeError.message);
     }
 }
 
@@ -53,6 +71,20 @@ export class TimeOfDayItem {
         this.time = time;
         this.duration = duration;
     }
+}
+
+export function parseTODItem(pair: [string, number]) : TimeOfDayItem | ValidationFailure {
+    const tod = parseTimeOfDay(pair[0]);
+    const dur = toNatural(pair[1]);
+
+    if(tod instanceof ValidationFailure){
+        return tod;
+    } else if (dur instanceof ValidationFailure){
+        return dur;
+    } else {
+        return new TimeOfDayItem(tod, dur);
+    }
+
 }
 
 export class TimeOfDayReport {
